@@ -1,0 +1,10 @@
+name = Autolink Filter
+description = Tillater lenking til brukere og innhold med en Twitter-liknende syntaks
+
+; Core version (required)
+core = 7.x
+
+; Package name (see http://drupal.org/node/101009 for a list of names)
+package = Input filters
+
+

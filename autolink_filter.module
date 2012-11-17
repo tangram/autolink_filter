@@ -1,0 +1,165 @@
+<?php
+
+/**
+ * @file
+ * Autolink Filter module server-side
+ *
+ * Allows AJAXified search for user and node names. 
+ * Typing a @ will initiate a search of users and nodes, 
+ * and allows the user to select an autocomplete option, 
+ * which is converted to a link on display. 
+ * Allows spaces in user names or titles.
+ * Intended for use with HTML inputs.
+ */
+
+/**
+ * Implements hook_library().
+ */
+function autolink_filter_library() {
+  $path = drupal_get_path('module', 'autolink_filter');
+  $libraries['autolink_js'] = array(
+    'title' => 'Autolink JavaScript Components',
+    'js' => array(
+      $path . '/autolink_filter.js' => array('group' => JS_LIBRARY),
+      $path . '/jquery.better-autocomplete.js' => array('group' => JS_LIBRARY),
+    ),
+    'css' => array(
+      $path . '/better-autocomplete.css' => array('group' => CSS_DEFAULT),
+    ),
+    'dependencies' => array(
+      array('system', 'jquery'),
+    ),
+  );
+  return $libraries;
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function autolink_filter_form_comment_form_alter(&$form, &$form_state, $form_id) {
+  drupal_add_library('autolink_filter', 'autolink_js');
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function autolink_filter_form_node_form_alter(&$form, &$form_state, $form_id) {
+  drupal_add_library('autolink_filter', 'autolink_js');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function autolink_filter_menu() {
+  $items['autolink-filter-fetch'] = array(
+    'page callback' => 'autolink_filter_json_query',
+    'access callback' => 'autolink_filter_access',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function autolink_filter_permission() {
+  return array(
+    'access autolink filter' => array(
+      'title' => t('Access autolink filter'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_filter_info().
+ */
+function autolink_filter_filter_info() {
+  $filters['autolink_filter'] = array(
+    'title' => t('Autolink Filter'),
+    'description' => t('Allows AJAXified search for user and node names. Typing a @ will initiate a search of users and nodes, and allows the user to select an autocomplete option, which is converted to a link on display. Intended for use with HTML inputs.'),
+    'process callback' => 'autolink_filter_html',
+    'default settings' => array(),
+    'settings callback' => 'autolink_filter_html_settings',
+    'tips callback'  => 'autolink_filter_html_tips',
+    'cache' => FALSE,
+  );
+  return $filters;
+}
+
+// Callbacks:
+
+function autolink_filter_html($text, $filter, $format) {
+  // matches '@Words with spaces' up to next non-alphanumeric character
+  $pattern = '/@[æøåÆØÅa-zA-Z0-9 ]+/';
+  $callback = 'autolink_filter_replace';
+  return preg_replace_callback($pattern, $callback, $text);  
+}
+
+function autolink_filter_html_settings($form, $form_state, $filter, $format, $defaults) {
+}
+
+function autolink_filter_html_tips($filter, $format, $long = FALSE) {
+  return t('Use @user or @title to search for');
+}
+
+function autolink_filter_access() {
+  return user_access('access autolink filter');
+}
+
+/**
+ * Replaces @user or @title with a link
+ */
+function autolink_filter_replace($match) {
+  $symbol = $match[0][0];
+  $full_string = substr($match[0], 1);
+  $queries = explode(' ', $full_string);
+
+  $sql = "SELECT nid as id, title FROM {node} WHERE title like :q AND (type='bokinformasjon' OR type='forfatterinformasjon')";
+  // query database with first word of the matched string
+  $nodes = db_query($sql, array(':q' => $queries[0].'%'))->fetchAll();
+  foreach ($nodes as $node) {
+    // if node title exists in matched string
+    if (stripos($full_string, $node->title) !== false) {
+      $path = drupal_get_path_alias('node/'. $node->id);
+      // replace title with link
+      $full_string = str_ireplace($node->title, l($node->title, $path), $full_string);
+    }
+  }
+
+  $sql = "SELECT uid as id, name as title FROM {users} WHERE name like :q";
+  $users = db_query($sql, array(':q' => $queries[0].'%'))->fetchAll();
+  foreach ($users as $user) {
+    if (stripos($full_string, $user->title) !== false) {
+      $path = drupal_get_path_alias('user/'. $user->id);
+      $full_string = str_ireplace($user->title, l($user->title, $path), $full_string);
+    }
+  }
+
+  return $symbol.$full_string;
+}
+
+/**
+ * Queries groups of nodes and users, outputs results as JSON
+ */
+function autolink_filter_json_query($query = '') {
+  // query groups separately, so Better Autocomplete can display them in groups  
+  $sql = "SELECT nid as id, title FROM {node} WHERE title like :q AND type='bokinformasjon'";
+  $books = db_query($sql, array(':q' => $query.'%'))->fetchAll();
+  foreach ($books as $book) {
+    // add group information
+    $book->group = t('Bøker');
+  }
+
+  $sql = "SELECT nid as id, title FROM {node} WHERE title like :q AND type='forfatterinformasjon'";
+  $authors = db_query($sql, array(':q' => $query.'%'))->fetchAll();
+  foreach ($authors as $author) {
+    $author->group = t('Forfattere');
+  }  
+
+  $sql = "SELECT uid as id, name as title FROM {users} WHERE name like :q";
+  $users = db_query($sql, array(':q' => $query.'%'))->fetchAll();
+  foreach ($users as $user) {
+    $user->group = t('Brukere');
+  }
+
+  return drupal_json_output(array_merge($books, $authors, $users));
+}
