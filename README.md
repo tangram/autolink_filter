@@ -7,6 +7,8 @@ Typing a @ will show an in place text input, further typing initiates a search o
 
 Degrades to simple server side link creation if there is no JavaScript support.
 
+As of now, it has some hard-coded elements for the site it is intended for, but will likely be generalized and released to drupal.org at some point.
+
 Requires Better Autocomplete jQuery plugin by Betamos:
 https://github.com/betamos/Better-Autocomplete
 
