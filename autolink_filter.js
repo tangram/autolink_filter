@@ -14,7 +14,7 @@ jQuery(function($) {
               </div>')
       .parent().css({ position: 'relative' });
 
-    // the blur function does most of the work of inserting text
+    // on blur, the input text is output to textarea
     input = $('.autolink-input').blur(function() {
     
       backpanel.css({ zIndex: -1 });

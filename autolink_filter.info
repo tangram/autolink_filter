@@ -1,5 +1,5 @@
 name = Autolink Filter
-description = Tillater lenking til brukere og innhold med en Twitter-liknende syntaks
+description = Allows AJAXified search for user and node names, replaces them with links.
 
 ; Core version (required)
 core = 7.x
