@@ -3,10 +3,9 @@ Autolink Filter for Drupal 7
 
 Allows AJAXified search for user and node names, and creates links out of them.
 
-Typing a @ will show an in place text input, further typing initiates a search
-of users and nodes. The user can select an autocomplete option, which is
-converted to a link on display. Allows spaces in user names or titles. Intended
-for use with HTML inputs.
+Typing a @ and a few letter initiates a search of users and nodes. The user can
+select an autocomplete option, which is converted to a link on display. Allows
+spaces in user names or titles. HTML anchor should be allowed for the input.
 
 Degrades to simple server side link creation if there is no JavaScript support.
 
@@ -17,4 +16,4 @@ Requires Better Autocomplete jQuery plugin by Betamos:
 https://github.com/betamos/Better-Autocomplete
 
 Copy jquery.better-autocomplete.js and better-autocomplete.css to the module
-folder
+folder (code uses .min version).

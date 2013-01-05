@@ -4,10 +4,10 @@
  * @file
  * Autolink Filter module server-side
  *
- * Allows AJAXified search for user and node names. 
- * Typing a @ will initiate a search of users and nodes, 
- * and allows the user to select an autocomplete option, 
- * which is converted to a link on display. 
+ * Allows AJAXified search for user and node names.
+ * Typing a @ will initiate a search of users and nodes,
+ * and allows the user to select an autocomplete option,
+ * which is converted to a link on display.
  * Allows spaces in user names or titles.
  * Intended for use with HTML inputs.
  */
@@ -21,7 +21,7 @@ function autolink_filter_library() {
     'title' => 'Autolink JavaScript Components',
     'js' => array(
       $path . '/autolink_filter.js' => array('group' => JS_LIBRARY),
-      $path . '/jquery.better-autocomplete.js' => array('group' => JS_LIBRARY),
+      $path . '/jquery.better-autocomplete.min.js' => array('group' => JS_LIBRARY),
     ),
     'css' => array(
       $path . '/better-autocomplete.css' => array('group' => CSS_DEFAULT),
@@ -91,7 +91,7 @@ function autolink_filter_html($text, $filter, $format) {
   // matches '@Words with spaces' up to next non-alphanumeric character
   $pattern = '/@[æøåÆØÅa-zA-Z0-9 ]+/';
   $callback = 'autolink_filter_replace';
-  return preg_replace_callback($pattern, $callback, $text);  
+  return preg_replace_callback($pattern, $callback, $text);
 }
 
 function autolink_filter_html_settings($form, $form_state, $filter, $format, $defaults) {
@@ -141,7 +141,7 @@ function autolink_filter_replace($match) {
  * Queries groups of nodes and users, outputs results as JSON
  */
 function autolink_filter_json_query($query = '') {
-  // query groups separately, so Better Autocomplete can display them in groups  
+  // query groups separately, so Better Autocomplete can display them in groups
   $sql = "SELECT nid as id, title FROM {node} WHERE title like :q AND type='bokinformasjon'";
   $books = db_query($sql, array(':q' => $query.'%'))->fetchAll();
   foreach ($books as $book) {
@@ -153,7 +153,7 @@ function autolink_filter_json_query($query = '') {
   $authors = db_query($sql, array(':q' => $query.'%'))->fetchAll();
   foreach ($authors as $author) {
     $author->group = t('Forfattere');
-  }  
+  }
 
   $sql = "SELECT uid as id, name as title FROM {users} WHERE name like :q";
   $users = db_query($sql, array(':q' => $query.'%'))->fetchAll();
