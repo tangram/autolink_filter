@@ -8,11 +8,9 @@ jQuery(function($) {
 
   $(document).ready(function() {
 
-    textarea.css({
+    textarea.css({position: 'relative'});
 
-      position: 'relative',
-
-    }).betterAutocomplete('init', '/autolink-filter-fetch/', {delay: 100}, {
+    autocomplete = textarea.betterAutocomplete('init', '/autolink-filter-fetch/', {delay: 100}, {
 
       canonicalQuery: function(rawQuery, caseSensitive) {
         if (position > 0)
@@ -47,12 +45,11 @@ jQuery(function($) {
           textarea.val(comment.substring(0, position) + result.title);
           comment = '';
           position = 0;
+          textarea.betterAutocomplete('disable');
         }
       },
 
-    });
-
-    autocomplete = $('.better-autocomplete');
+    }).betterAutocomplete('disable');;
 
   });
 
@@ -63,12 +60,14 @@ jQuery(function($) {
     // check for typed @, avoid for e.g. an email adress
     if (comment[comment.length-1] == '@' &&
        (comment[comment.length-2] == ' ' ||
-        comment[comment.length-2] == undefined))
+        comment[comment.length-2] == undefined)) {
       position = comment.length;
+      textarea.betterAutocomplete('enable');
+    }
 
     if (event.which == 27 || event.which == 13) {
       position = 0;
-      autocomplete.hide();
+      textarea.betterAutocomplete('disable');
     }
 
   });
