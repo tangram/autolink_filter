@@ -4,13 +4,18 @@ jQuery(function($) {
   var query = '';
   var textarea = $('.form-textarea');
   var position = 0;
-  var autocomplete;
 
   $(document).ready(function() {
 
-    textarea.css({position: 'relative'});
+    textarea.css({
 
-    autocomplete = textarea.betterAutocomplete('init', '/autolink-filter-fetch/', {delay: 100}, {
+      position: 'relative'
+
+    }).betterAutocomplete('init', '/autolink-filter-fetch/', {delay: 100}, {
+
+      afterHide: function($results) {
+        textarea.betterAutocomplete('disable');
+      },
 
       canonicalQuery: function(rawQuery, caseSensitive) {
         if (position > 0)
@@ -49,7 +54,7 @@ jQuery(function($) {
         }
       },
 
-    }).betterAutocomplete('disable');;
+    }).betterAutocomplete('disable');
 
   });
 
@@ -60,6 +65,7 @@ jQuery(function($) {
     // check for typed @, avoid for e.g. an email adress
     if (comment[comment.length-1] == '@' &&
        (comment[comment.length-2] == ' ' ||
+        comment[comment.length-2] == '\n' ||
         comment[comment.length-2] == undefined)) {
       position = comment.length;
       textarea.betterAutocomplete('enable');
